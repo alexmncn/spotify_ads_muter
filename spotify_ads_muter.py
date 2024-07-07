@@ -8,12 +8,12 @@ from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
 
 def get_spotify_processes():
-    proceses = []
+    processes = []
 
     for proc in psutil.process_iter(['pid', 'name']):
         if proc.info['name'] == 'Spotify.exe':
-            proceses.append(proc)
-    return proceses
+            processes.append(proc)
+    return processes or None
 
 
 def get_hwnds_for_pid(pid):
@@ -41,6 +41,7 @@ def get_window_title(processes):
         except Exception as e:
             print(f'Error al obtener la ventana: {e}')
             return None
+        
 
 
 def is_ad_playing():
@@ -57,6 +58,7 @@ def is_ad_playing():
                 return True, title # Ad is playing
         
         return False, title
+    return None, None
                   
 
 def set_volume(volume_level):
@@ -83,8 +85,8 @@ def main():
     ad_volume = 0.04        # Ads volume
     check_interval = 3
 
-    last_status = None
-    last_title = None
+    last_status = ''
+    last_title = ''
 
     try:
         while True:
@@ -105,6 +107,10 @@ def main():
                     last_status = True
                 if title != last_title:
                     print(f'Está sonando un anuncio. Bajando el volumen al {int(ad_volume*100)} %')   
+            elif ad_playing is None:
+                if last_status is not None:
+                    last_status = None
+                    print('No se ha encontrado ningun proceso de Spotify.exe. Abre la aplicación Spotify.')
             else:
                 if last_status is not False:  
                     set_volume(default_volume)
